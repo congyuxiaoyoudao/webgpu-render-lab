@@ -5,7 +5,6 @@ import splat_shader from './splat_shader.wgsl?raw';
 
 export class Splats {
     private _renderPipeline: GPURenderPipeline;
-    private _computePipeline: GPUComputePipeline;
     private _numVertices: number;
     private _splatBindGroup: GPUBindGroup;
     private _splatPositionBuffer: GPUBuffer;
@@ -176,18 +175,8 @@ export class Splats {
             }
         })
         
-        const computePipeline = device.createComputePipeline({
-            layout: device.createPipelineLayout({
-                bindGroupLayouts:[]
-            }),
-            compute: {
-                module: shaderModule,
-                entryPoint: 'cs_main'
-            }
-        });
         
         this._renderPipeline = renderPipeline;
-        this._computePipeline = computePipeline;
         this._numVertices = vertices.length;
         this._splatBindGroup = splatBindGroup;
         this._splatPositionBuffer = splatPosBuffer;

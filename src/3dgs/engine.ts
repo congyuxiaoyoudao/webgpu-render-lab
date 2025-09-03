@@ -225,7 +225,7 @@ export class RenderEngine {
 
       requestAnimationFrame(frame)
       let timeId: any = null;
-      const resizeObserver = new ResizeObserver((entries) => {
+      const resizeObserver = new ResizeObserver((_entries) => {
           if (timeId) {
               clearTimeout(timeId);
           }
