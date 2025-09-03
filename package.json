@@ -9,7 +9,12 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@webgpu/types": "^0.1.64",
+    "arcball_camera": "^1.0.1",
+    "ez_canvas_controller": "^1.0.0",
+    "lil-gui": "^0.20.0",
     "typescript": "~5.8.3",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "wgpu-matrix": "^3.4.0"
   }
 }
