@@ -109,7 +109,7 @@ export class RenderEngine {
       });
   
       // 3. LOAD PLY FILE
-      const response = await fetch('/assets/ply/food.ply')
+      const response = await fetch('/webgpu-render-lab/assets/ply/food.ply')
       const blob = await response.blob()
       const file = new File([blob], 'food.ply')
       
