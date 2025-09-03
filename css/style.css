@@ -4,7 +4,7 @@
 
 @font-face {
     font-family: IBMPlexMono;
-    src: url('../../public/assets/fonts/IBMPlexMono-Medium-B772pXP5.woff2') format('woff2');
+    src: url('/webgpu-render-lab/assets/fonts/IBMPlexMono-Medium-B772pXP5.woff2') format('woff2');
 }
 
 body {
