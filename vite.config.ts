@@ -8,6 +8,7 @@ export default defineConfig({
         main: 'index.html',
         helloTriangle: 'src/helloTriangle/index.html',
         threeDGS: 'src/3dgs/index.html',
+        useTextures: 'src/useTextures/index.html',
       }
     }
   }
