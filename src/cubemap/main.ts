@@ -68,7 +68,7 @@ async function main() {
   }
 
   // get canvas and configure webgpu context
-  const canvas = document.querySelector('canvas');
+  const canvas = document.querySelector('canvas') as HTMLCanvasElement;
   if (!canvas) {
     throw new Error("Cannot get canvas.");
   }
@@ -161,7 +161,7 @@ async function main() {
     return 1 + Math.log2(maxSize) | 0;
   };
 
-  function copySourcesToTexture(device, texture, sources, {flipY} = {}) {
+  function copySourcesToTexture(device: GPUDevice, texture: GPUTexture, sources: ImageBitmap[], {flipY}: {flipY?:boolean} = {}) {
     sources.forEach((source, layer) => {
       device.queue.copyExternalImageToTexture(
         { source, flipY, },
@@ -174,7 +174,7 @@ async function main() {
     }
   }
 
-  function createTextureFromSources(device, sources, options = {}) {
+  function createTextureFromSources(device: GPUDevice, sources: ImageBitmap[], options: {mips?: boolean, flipY?: boolean}= {}) {
     // Assume are sources all the same size so just use the first one for width and height
     const source = sources[0];
     const texture = device.createTexture({
@@ -194,7 +194,7 @@ async function main() {
     let module: GPUShaderModule;
     const pipelineByFormat = {};
 
-    return function generateMips(device, texture) {
+    return function generateMips(device: GPUDevice, texture: GPUTexture) {
       if (!module) {
         module = device.createShaderModule({
           code: `
@@ -293,7 +293,7 @@ async function main() {
               },
             ],
           };
-
+          // @ts-ignore
           const pass = encoder.beginRenderPass(renderPassDescriptor);
           pass.setPipeline(pipeline);
           pass.setBindGroup(0, bindGroup);
@@ -307,13 +307,13 @@ async function main() {
     };
   })();
 
-  async function loadImageBitmap(url) {
+  async function loadImageBitmap(url: string) {
     const res = await fetch(url);
     const blob = await res.blob();
     return await createImageBitmap(blob, { colorSpaceConversion: 'none' });
   }
 
-  async function createTextureFromImages(device, urls, options) {
+  async function createTextureFromImages(device: GPUDevice, urls: string[], options: { mips?: boolean, flipY?: boolean }) {
     const images = await Promise.all(urls.map(loadImageBitmap));
     return createTextureFromSources(device, images, options);
   }
@@ -410,10 +410,11 @@ async function main() {
     // Get the current texture from the canvas context and
     // set it as the texture to render to.
     const canvasTexture = context.getCurrentTexture();
+    // @ts-ignore
     renderPassDescriptor.colorAttachments[0].view = canvasTexture.createView();
 
     const commandEncoder = device.createCommandEncoder();
-
+    // @ts-ignore
     const pass = commandEncoder.beginRenderPass(renderPassDescriptor);
     pass.setPipeline(pipeline);
     pass.setVertexBuffer(0, vertexBuffer);
@@ -453,7 +454,7 @@ async function main() {
   
   const observer = new ResizeObserver(entries => {
     for (const entry of entries) {
-      const canvas = entry.target;
+      const canvas = entry.target as HTMLCanvasElement;
       const width = entry.contentBoxSize[0].inlineSize;
       const height = entry.contentBoxSize[0].blockSize;
       canvas.width = Math.max(1, Math.min(width, device.limits.maxTextureDimension2D));
