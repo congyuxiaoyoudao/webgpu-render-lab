@@ -1,17 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebGPU 3D Gaussian Splatting Demo</title>
-  <script type="module" crossorigin src="/webgpu-render-lab/assets/threeDGS-DFFZJTtc.js"></script>
-  <link rel="modulepreload" crossorigin href="/webgpu-render-lab/assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="modulepreload" crossorigin href="/webgpu-render-lab/assets/lil-gui.esm-hsJpI9MV.js">
-  <link rel="modulepreload" crossorigin href="/webgpu-render-lab/assets/wgpu-matrix.module-Do896bM9.js">
-</head>
-<body>
-    <canvas id="webgpu-canvas"></canvas>
+    <title>Cube mapping</title>
     <style>
       :root {
         color-scheme: light dark;
@@ -25,11 +18,18 @@
       }
       canvas {
         display: block;
-        width: auto;
+        width: 100%;
         height: 100%;
         max-width: 100%;
       }
     </style>
     <script defer type="module" src="/webgpu-render-lab/js/iframe-helper.js"></script>
-</body>
+    <script type="module" crossorigin src="/webgpu-render-lab/assets/cubemap-CIgNNSH6.js"></script>
+    <link rel="modulepreload" crossorigin href="/webgpu-render-lab/assets/modulepreload-polyfill-B5Qt9EMX.js">
+    <link rel="modulepreload" crossorigin href="/webgpu-render-lab/assets/wgpu-matrix.module-Do896bM9.js">
+    <link rel="modulepreload" crossorigin href="/webgpu-render-lab/assets/lil-gui.esm-hsJpI9MV.js">
+  </head>
+  <body>
+    <canvas></canvas>
+  </body>
 </html>
