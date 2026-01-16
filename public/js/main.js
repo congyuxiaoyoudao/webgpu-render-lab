@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'triangle', title: 'Triangle', description: 'A simple WebGPU example drawing a colorful triangle using vertex buffers.', url: 'src/helloTriangle' },
         { id: '3dgs', title: '3DGS', description: 'Realtime rendering 3dgs scene.', url: 'src/3dgs' },
         { id: 'useTextures', title: 'useTextures', description: 'Learn how to use textures in webgpu.', url: 'src/useTextures' },
+        { id: 'cubemap', title: 'Cubemap', description: 'Simple cubemap demo.', url: 'src/cubemap' },
     ];
 
     const projectListEl = document.getElementById('project-list');

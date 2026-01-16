@@ -9,6 +9,7 @@ export default defineConfig({
         helloTriangle: 'src/helloTriangle/index.html',
         threeDGS: 'src/3dgs/index.html',
         useTextures: 'src/useTextures/index.html',
+        cubemap: 'src/cubemap/index.html',
       }
     }
   }
