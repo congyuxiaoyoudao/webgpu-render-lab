@@ -10,6 +10,7 @@ export default defineConfig({
         threeDGS: 'src/3dgs/index.html',
         useTextures: 'src/useTextures/index.html',
         cubemap: 'src/cubemap/index.html',
+        loadModel: 'src/loadModel/index.html',
       }
     }
   }
