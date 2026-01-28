@@ -279,7 +279,7 @@ async function main() {
   const cameraPositionValue = uniformValues.subarray(kCameraPositionOffset, kCameraPositionOffset + 3);
 
   const objLoader = new ObjLoader();
-  const objFile = await objLoader.load('/webgpu-render-lab/public/assets/obj/suzanne.obj');
+  const objFile = await objLoader.load('/webgpu-render-lab/assets/obj/suzanne.obj');
   const mesh = objLoader.parse(objFile);
 
   const numVertices = mesh.indices.length;
