@@ -1,4 +1,4 @@
-// samples/cubemap/main.ts
+// samples/loadModel/main.ts
 import { mat4 } from "wgpu-matrix";
 import { ObjLoader } from "../utils/loaders/objLoader";
 import solid_shader from './solid_shader.wgsl?raw';

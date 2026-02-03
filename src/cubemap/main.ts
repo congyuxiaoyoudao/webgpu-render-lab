@@ -1,6 +1,7 @@
 // samples/cubemap/main.ts
 import { mat4 } from "wgpu-matrix";
 import { GUI } from 'lil-gui'
+import skybox_shader from './skybox_shader.wgsl?raw';
 
 function createCubeVertices() {
   const vertexData = new Float32Array([
@@ -82,7 +83,7 @@ async function main() {
   });
 
   // shader code
-  const shaderCode = `
+  const envMapShaderCode = `
     struct Uniforms {
         projection: mat4x4f,
         view: mat4x4f,
@@ -124,16 +125,16 @@ async function main() {
   `;
 
   // create shader module
-  const shaderModule = device.createShaderModule({
-    code: shaderCode,
+  const envMapShaderModule = device.createShaderModule({
+    code: envMapShaderCode,
   });
   
   // create render pipeline
-  const pipeline = device.createRenderPipeline({
+  const envMapPipeline = device.createRenderPipeline({
     label: '2 attributes',
     layout: 'auto',
     vertex: {
-      module: shaderModule,
+      module: envMapShaderModule,
       entryPoint: 'vs',
       buffers: [
         {
@@ -146,15 +147,44 @@ async function main() {
       ]
     },
     fragment: {
-      module: shaderModule,
+      module: envMapShaderModule,
       entryPoint: 'fs',
       targets: [{ format: presentationFormat, }],
     },
     primitive: {
       cullMode: 'back',
     },
+    depthStencil: {
+      depthWriteEnabled: true,
+      depthCompare: 'less',
+      format: 'depth24plus',
+    },
   });
 
+  const skyboxShaderCode = skybox_shader;
+
+  const skyboxShaderModule = device.createShaderModule({
+    code: skyboxShaderCode,
+  });
+
+  const skyboxPipeline = device.createRenderPipeline({
+    label: '0 attributes',
+    layout: 'auto',
+    vertex: {
+      module: skyboxShaderModule,
+      entryPoint: 'vs',
+    },
+    fragment: {
+      module: skyboxShaderModule,
+      entryPoint: 'fs',
+      targets: [{ format: presentationFormat, }],
+    },
+    depthStencil: {
+      depthWriteEnabled: true,
+      depthCompare: 'less-equal', // set to less-equal to ensure skybox passes depth test when depth is 1.0
+      format: 'depth24plus',
+    },
+  });
 
   const numMipLevels = (...sizes: number[]) => {
     const maxSize = Math.max(...sizes);
@@ -338,14 +368,14 @@ async function main() {
   });
 
   // matrix: uniform buffer
-  const uniformBufferSize = (16 + 16 + 16 + 3 + 1) * 4; // projection, view, world, cameraPosition, padding
-  const uniformBuffer = device.createBuffer({
+  const envMapUniformBufferSize = (16 + 16 + 16 + 3 + 1) * 4; // projection, view, world, cameraPosition, padding
+  const envMapUniformBuffer = device.createBuffer({
     label: 'uniforms',
-    size: uniformBufferSize,
+    size: envMapUniformBufferSize,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
-  const uniformValues = new Float32Array(uniformBufferSize / 4);
+  const envMapUniformValues = new Float32Array(envMapUniformBufferSize / 4);
 
   // offsets to the various uniform values in float32 indices
   const kProjectionOffset = 0;
@@ -353,10 +383,10 @@ async function main() {
   const kWorldOffset = 32;
   const kCameraPositionOffset = 48;
 
-  const projectionValue = uniformValues.subarray(kProjectionOffset, kProjectionOffset + 16);
-  const viewValue = uniformValues.subarray(kViewOffset, kViewOffset + 16);
-  const worldValue = uniformValues.subarray(kWorldOffset, kWorldOffset + 16);
-  const cameraPositionValue = uniformValues.subarray(kCameraPositionOffset, kCameraPositionOffset + 3);
+  const projectionValue = envMapUniformValues.subarray(kProjectionOffset, kProjectionOffset + 16);
+  const viewValue = envMapUniformValues.subarray(kViewOffset, kViewOffset + 16);
+  const worldValue = envMapUniformValues.subarray(kWorldOffset, kWorldOffset + 16);
+  const cameraPositionValue = envMapUniformValues.subarray(kCameraPositionOffset, kCameraPositionOffset + 3);
 
   const { vertexData, indexData, numVertices } = createCubeVertices();
   const vertexBuffer = device.createBuffer({
@@ -373,11 +403,38 @@ async function main() {
   });
   device.queue.writeBuffer(indexBuffer, 0, indexData);
 
-  const bindGroup = device.createBindGroup({
+  const envMapBindGroup = device.createBindGroup({
     label: 'bind group for object',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: envMapPipeline.getBindGroupLayout(0),
     entries: [
-      { binding: 0, resource: { buffer: uniformBuffer }},
+      { binding: 0, resource: { buffer: envMapUniformBuffer }},
+      { binding: 1, resource: sampler },
+      { binding: 2, resource: texture.createView({dimension: 'cube'}) },
+    ],
+  });
+
+  const skyboxUniformBufferSize = 16 * 4; // projection, view, world, cameraPosition, padding
+  const skyboxUniformBuffer = device.createBuffer({
+    label: 'uniforms',
+    size: skyboxUniformBufferSize,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  const skyboxUniformValues = new Float32Array(skyboxUniformBufferSize / 4);
+
+  // offsets to the various uniform values in float32 indices
+  const kViewProjectionInverseOffset = 0;
+
+  const viewProjectionInverseValue = skyboxUniformValues.subarray(
+     kViewProjectionInverseOffset,
+     kViewProjectionInverseOffset + 16);
+  
+
+  const skyboxBindGroup = device.createBindGroup({
+    label: 'bind group for skybox',
+    layout: skyboxPipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: skyboxUniformBuffer }},
       { binding: 1, resource: sampler },
       { binding: 2, resource: texture.createView({dimension: 'cube'}) },
     ],
@@ -392,33 +449,59 @@ async function main() {
         storeOp: 'store',
       },
     ],
+    depthStencilAttachment: {
+      // view: <- to be filled out when we render
+      depthClearValue: 1.0,
+      depthLoadOp: 'clear',
+      depthStoreOp: 'store',
+    },
   };
 
+  let depthTexture;
+
   const settings = {
-    rotation: [25, 40, 0]
+    cameraRotateSpeed: 0.5,
+    cubeRotateSpeed: 0.5,
   };
 
   const gui = new GUI();
-  gui.onChange(render);
-  gui.add(settings.rotation, 0, -360, 360, 1).name('rotationX')
-  gui.add(settings.rotation, 1, -360, 360, 1).name('rotationY')
-  gui.add(settings.rotation, 2, -360, 360, 1).name('rotationZ')
+  // gui.onChange(render);
+  gui.add(settings, 'cameraRotateSpeed', 0.01, 1)
+  gui.add(settings, 'cubeRotateSpeed', 0.01, 2)
 
+  let cameraAngle = 0;
+  let cubeMapAngle = 0;
+  let lastTime = 0;
   // render loop
   function render(time) {
     time *= 0.001;
+    const deltaTime = time - lastTime;
+    lastTime = time;
+    
     // Get the current texture from the canvas context and
     // set it as the texture to render to.
     const canvasTexture = context.getCurrentTexture();
     // @ts-ignore
     renderPassDescriptor.colorAttachments[0].view = canvasTexture.createView();
 
+    if (!depthTexture ||
+        depthTexture.width !== canvasTexture.width ||
+        depthTexture.height !== canvasTexture.height) {
+      if (depthTexture) {
+        depthTexture.destroy();
+      }
+      depthTexture = device.createTexture({
+        size: [canvasTexture.width, canvasTexture.height],
+        format: 'depth24plus',
+        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      });
+    }
+    // @ts-ignore
+    renderPassDescriptor.depthStencilAttachment.view = depthTexture;
+
     const commandEncoder = device.createCommandEncoder();
     // @ts-ignore
     const pass = commandEncoder.beginRenderPass(renderPassDescriptor);
-    pass.setPipeline(pipeline);
-    pass.setVertexBuffer(0, vertexBuffer);
-    pass.setIndexBuffer(indexBuffer, 'uint16');
 
     const aspect = canvas.clientWidth / canvas.clientHeight;
     mat4.perspective(
@@ -428,7 +511,14 @@ async function main() {
         10,      // zFar
         projectionValue,
     );
-    cameraPositionValue.set([0, 0, 4]);  // camera position;
+
+    cameraAngle += deltaTime * settings.cameraRotateSpeed;
+    cameraPositionValue.set([
+      4*Math.cos(cameraAngle),
+      0, 
+      4*Math.sin(cameraAngle)
+    ]);  // camera position;
+
     mat4.lookAt(
       cameraPositionValue,  // camera position
       [0, 0, 0],  // target
@@ -436,12 +526,26 @@ async function main() {
       viewValue
     );
     mat4.identity(worldValue);
-    mat4.rotateX(worldValue, time * -0.1, worldValue);
-    mat4.rotateY(worldValue, time * -0.2, worldValue);
+    cubeMapAngle += deltaTime * settings.cubeRotateSpeed;
+    mat4.rotateX(worldValue, cubeMapAngle, worldValue);
+    mat4.rotateY(worldValue, cubeMapAngle*2, worldValue);
 
-    device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
-    pass.setBindGroup(0, bindGroup);
+    const viewProjection = mat4.multiply(projectionValue, viewValue);
+    mat4.inverse(viewProjection, viewProjectionInverseValue);
+
+    device.queue.writeBuffer(envMapUniformBuffer, 0, envMapUniformValues);
+    device.queue.writeBuffer(skyboxUniformBuffer, 0, skyboxUniformValues);
+
+    pass.setPipeline(envMapPipeline);
+    pass.setVertexBuffer(0, vertexBuffer);
+    pass.setIndexBuffer(indexBuffer, 'uint16');
+    pass.setBindGroup(0, envMapBindGroup);
     pass.drawIndexed(numVertices); 
+
+    // Draw the skyBox
+    pass.setPipeline(skyboxPipeline);
+    pass.setBindGroup(0, skyboxBindGroup);
+    pass.draw(3);
 
     pass.end();
     
