@@ -1,4 +1,3 @@
-import type { Vec2, Vec3 } from "wgpu-matrix" 
 import { vec2, vec3, vec4 } from "wgpu-matrix" 
 import { getVec2FromArray, getVec3FromArray } from "../math/array.js"
 

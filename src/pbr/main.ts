@@ -1,5 +1,5 @@
 // samples/pbr/main.ts
-import { mat3, mat4 } from "wgpu-matrix";
+import { mat4 } from "wgpu-matrix";
 import { ObjLoader } from "../utils/loaders/objLoader";
 import pbr_shader from './disney_pbr_shader.wgsl?raw';
 
@@ -265,7 +265,8 @@ async function main() {
     const image = await loadImageBitmap(url);
     return createTextureFromSource(device, image, options);
   }
-
+  
+  //@ts-ignore
   async function createTextureFromImages(device: GPUDevice, urls: string[], options: { mips?: boolean, flipY?: boolean }) {
     const images = await Promise.all(urls.map(loadImageBitmap));
     return createTextureFromSources(device, images, options);
