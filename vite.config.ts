@@ -11,6 +11,7 @@ export default defineConfig({
         useTextures: 'src/useTextures/index.html',
         cubemap: 'src/cubemap/index.html',
         loadModel: 'src/loadModel/index.html',
+        ibl: 'src/ibl/index.html',
         pbr: 'src/pbr/index.html',
       }
     }

@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'useTextures', title: 'useTextures', description: 'Learn how to use textures in webgpu.', url: 'src/useTextures' },
         { id: 'cubemap', title: 'Cubemap', description: 'Simple cubemap demo.', url: 'src/cubemap' },
         { id: 'loadModel', title: 'LoadOBJ', description: 'Simple obj load demo.', url: 'src/loadModel' },
+        { id: 'ibl', title: 'IBL', description: 'Image-based rendering demo.', url: 'src/ibl' },
         { id: 'pbr', title: 'PBR', description: 'Disney physically-based rendering demo.', url: 'src/pbr' },
     ];
 
